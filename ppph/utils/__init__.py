@@ -1,0 +1,4 @@
+from .reference_element_barycentric_coordinates import ReferenceElementBarycentricCoordinates
+from .diffusion_tensor import DiffusionTensor
+from .two_dimension_function import TwoDimensionFunction
+from .apply_fit import apply_fit

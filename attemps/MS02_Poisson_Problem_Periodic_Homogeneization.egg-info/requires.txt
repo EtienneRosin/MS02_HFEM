@@ -1,0 +1,8 @@
+numpy
+matplotlib
+pygmsh
+meshio
+scipy
+tqdm
+cmasher
+scienceplots

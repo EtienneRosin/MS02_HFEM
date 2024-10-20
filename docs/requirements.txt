@@ -1,0 +1,7 @@
+gmsh
+ipympl
+jupyterlab
+matplotlib
+meshio
+numpy
+scipy

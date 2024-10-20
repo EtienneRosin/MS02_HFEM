@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: ppph
+Version: 0.1
+Summary: A library to deals with the Periodic Poisson equation (from a ENSTA work).
+Author: Etienne Rosin
+Author-email: etienne.rosin.rosin@ensta-paris.fr
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: matplotlib
+Requires-Dist: pygmsh
+Requires-Dist: meshio
+Requires-Dist: scipy
+Requires-Dist: tqdm
+Requires-Dist: cmasher
+Requires-Dist: scienceplots

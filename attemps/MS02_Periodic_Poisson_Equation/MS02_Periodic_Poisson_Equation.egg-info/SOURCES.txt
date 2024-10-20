@@ -1,0 +1,16 @@
+README.md
+setup.py
+MS02_Periodic_Poisson_Equation.egg-info/PKG-INFO
+MS02_Periodic_Poisson_Equation.egg-info/SOURCES.txt
+MS02_Periodic_Poisson_Equation.egg-info/dependency_links.txt
+MS02_Periodic_Poisson_Equation.egg-info/requires.txt
+MS02_Periodic_Poisson_Equation.egg-info/top_level.txt
+poisson_equation/__init__.py
+poisson_equation/stationnary_problem.py
+poisson_equation/mesh/__init__.py
+poisson_equation/mesh/custom_mesh_1.py
+poisson_equation/mesh/custom_two_dimension_mesh.py
+poisson_equation/utils/__init__.py
+poisson_equation/utils/barycentric_coordinates.py
+poisson_equation/utils/quadrature/__init__.py
+poisson_equation/utils/quadrature/gauss_legendre_quadrature.py
