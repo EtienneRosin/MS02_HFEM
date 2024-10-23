@@ -31,26 +31,27 @@ def display_field_on_mesh(mesh: CustomTwoDimensionMesh, field: np.ndarray, label
             fig.savefig(f"{save_name}.pdf")
         plt.show()
 
-def display_3d(mesh: CustomTwoDimensionMesh, field: np.ndarray, label: str = None, save_name: str = None, cmap: str = 'cmr.lavender', view_init: tuple = (40, -30, 0)):
+def display_3d(mesh: CustomTwoDimensionMesh, field: np.ndarray, label: str = None, save_name: str = None, cmap: str = 'cmr.lavender', view_init: tuple = (40, -30)):
     with plt.style.context(style_path if save_name else 'default'):
         fig = plt.figure()
-        ax = fig.add_subplot(projection = "3d")
-        contour = ax.plot_trisurf(*mesh.node_coords.T, mesh.tri_nodes, field, cmap = cmap)
-        # Colorbar
-        # fig.colorbar(contour, ax=ax, fraction=0.02, pad=0.1, label = fr"{label}")
-        ax.set(xlabel = r"$x$", ylabel = r"$y$", zlabel = fr"{label}",
-            #    aspect = "equal"
-               )
-        # ax.set_box_aspect("equal", zoom=0.9)
-        # ax.set_box_aspect('equal', zoom=0.5)
-        ax.set_aspect("equal", adjustable="datalim")
-        plt.tight_layout()
-        # ax.set_box_aspect(aspect=(1, 1, 1))
-        # fig.colorbar(contour, ax = ax, shrink=0.5, aspect=20, label = fr"{label}")
+        ax = fig.add_subplot(projection="3d")
+
+        # Create the trisurf plot
+        contour = ax.plot_trisurf(*mesh.node_coords.T, mesh.tri_nodes, field, cmap=cmap)
+
+        # Set labels and view angle
+        ax.set(xlabel=r"$x$", ylabel=r"$y$", zlabel=fr"{label}", aspect="auto")
         ax.view_init(*view_init)
+
+        # Ensure proper layout and save figure
         if save_name:
-            fig.savefig(f"{save_name}.pdf")
+            # Save with bbox_inches='tight' to ensure all labels are within the saved image
+            fig.savefig(f"{save_name}.pdf", bbox_inches='tight')
+
+        # Show the plot
         plt.show()
+
+
 
 def u_expr(x, y):
     return np.cos(np.pi * x) * np.cos(np.pi * y)
@@ -59,10 +60,10 @@ u = TwoDimensionFunction(u_expr)
 if __name__ == '__main__':
     mesh_fname: str = "mesh_manager/geometries/rectangle.msh"
     h = 0.05
-    create_rectangle_mesh(h = h, L_x = 2, L_y = 1, save_name = mesh_fname)
+    # create_rectangle_mesh(h = h, L_x = 2, L_y = 1, save_name = mesh_fname)
     mesh = CustomTwoDimensionMesh(filename=mesh_fname, reordering=True)
     
     field = u(mesh.node_coords)
     
-    # display_field_on_mesh(mesh=mesh, field=field, label='$u$')
-    display_3d(mesh=mesh, field=field, label='$u$',save_name="test")
+    display_field_on_mesh(mesh=mesh, field=field, label='$u$',save_name="hih")
+    # display_3d(mesh=mesh, field=field, label='$u$',save_name="udzubuyczbuy")

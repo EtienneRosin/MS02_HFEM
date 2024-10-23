@@ -7,6 +7,7 @@ axes.prop_cycle : cycler('color', ['0C5DA5', '00B945', 'FF9500', 'FF2C00', '845B
 
 # Set default figure size
 figure.figsize : 5, 3.75
+figure.constrained_layout.use : False
 
 # Set x axis
 xtick.direction : in
@@ -35,8 +36,11 @@ lines.linewidth : 1.
 legend.frameon : False
 
 # Always save as 'tight'
-savefig.bbox : tight
-savefig.pad_inches : 0.05
+savefig.dpi : 300
+#savefig.bbox : tight
+savefig.format: pdf
+savefig.transparent: True
+savefig.pad_inches : 0.01
 
 # Use serif fonts
 # font.serif : Times

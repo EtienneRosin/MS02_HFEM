@@ -235,14 +235,14 @@ class NeumannProblem:
 if __name__ == '__main__':
     # Mesh ----------------------------------------------------------
     mesh_fname: str = "mesh_manager/geometries/rectangle.msh"
-    h = 0.05
-    # h = 0.1
-    create_rectangle_mesh(h = h, L_x = 3, L_y = 3, save_name = mesh_fname)
+    # h = 0.05
+    h = 0.1
+    create_rectangle_mesh(h = h, L_x = 1, L_y = 1, save_name = mesh_fname)
     
     mesh = CustomTwoDimensionMesh(mesh_fname, reordering= True)
     # Problem parameters --------------------------------------------
-    a = 8
-    sigma = 2e5
+    a = 2
+    sigma = 10
     def v(x, y):
         return np.sin(a * np.pi * x) * np.sin(a * np.pi * y) + 2
 
@@ -259,7 +259,7 @@ if __name__ == '__main__':
         # return (x + 1.5)**2 + (y + 1.5)**2
         # return sigma
         # return (1 + 16 * (np.pi**2) * (v(x, y) - 1)) * u(x, y)
-        return y
+        return sigma*y
     
     
     # Problem itself ------------------------------------------------
@@ -274,6 +274,7 @@ if __name__ == '__main__':
     neumann_pb.solve()
     # neumann_pb.display_error()
     # neumann_pb.display()
+    # neumann_pb.display_3d(view_init=(8, -7, 0))
     neumann_pb.display_3d(save_name=f"neuman_{a}", view_init=(8, -7, 0))
     # field = neumann_pb.U - neumann_pb.rhs(mesh.node_coords)
     # field = neumann_pb.U - neumann_pb.U.mean()
