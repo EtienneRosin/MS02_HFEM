@@ -26,6 +26,7 @@ def u(x, y):
 def f(x, y):
     return (1 + 16 * (np.pi**2) * (v(x, y) - 1)) * u(x, y)
 
+
 folder: str = "ppph/poisson_problems/neumann/validation/4_error_variable_A"
 filename: str = "error_measurements.csv"
 
