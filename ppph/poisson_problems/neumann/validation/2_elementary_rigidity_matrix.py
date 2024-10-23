@@ -1,8 +1,13 @@
 from validation_parameters import *
 from ppph.utils import ReferenceElementBarycentricCoordinates, DiffusionTensor, TwoDimensionFunction
-from ppph.utils.quadratures.gauss_lobatto_4_points import quadrature_weights, quadrature_points
+# from ppph.utils.quadratures.gauss_lobatto_4_points import quadrature_weights, quadrature_points
+from ppph.utils.quadratures.gauss_legendre_6_points import quadrature_weights, quadrature_points
 bc = ReferenceElementBarycentricCoordinates()
+def v(x, y):
+    return np.sin(2 * np.pi * x) * np.sin(2 * np.pi * y) + 2
 
+def diffusion_tensor_expr(x, y):
+    return v(x, y) * np.eye(2)
 diffusion_tensor = DiffusionTensor(diffusion_tensor_expr)
 
 def _construct_elementary_rigidity_matrix(triangle_nodes: np.ndarray) -> np.ndarray:
@@ -25,20 +30,21 @@ def _construct_elementary_rigidity_matrix(triangle_nodes: np.ndarray) -> np.ndar
     # Inverse of the jacobian of the F_l transform
     A_l = bc.A_l(*triangle_nodes)
     
+    
     # Compute the gradient of each barycentric function on the quadrature points
     lst_grad = np.array([[bc.grad_w_tilde(i, M_q) for M_q in quadrature_points] for i in range(1, 3 + 1)])
-    # print(lst_grad.shape) # (3, 4, 2)
+    # print(lst_grad) # (3, 4, 2)
     
     # Apply A_l to each gradient of barycentric function
     
     lst_A_l_grad = np.array([[A_l @ grad[q] for q in range(len(quadrature_points))] for grad in lst_grad])
     # lst_A_l_grad = np.einsum('ij,klm->klij', A_l, grad)
     # print(lst_A_l_grad[0].shape) # (3, 4, 2, 2)
+    # print(lst_A_l_grad) # (3, 4, 2, 2)
     
     # Compute the weighted diffusion tensor on each quadrature points
-    mat_a = np.array([omega_q*diffusion_tensor(bc.F_l(M_q, *triangle_nodes)) 
-                    for omega_q, M_q in zip(quadrature_weights, quadrature_points)])
-    # print(mat_a.shape) # (4, 2, 2)
+    mat_a = np.array([diffusion_tensor(bc.F_l(M_q, *triangle_nodes)) for M_q in quadrature_points])
+    # print(mat_a) # (4, 2, 2)
     
     # Apply the weighted diffusion tensor on each "gradient"
     # a_applied = np.einsum('qij,qkl->qikl', mat_a, lst_A_l_grad)  # Shape (4, 3, 4, 2)
@@ -49,8 +55,9 @@ def _construct_elementary_rigidity_matrix(triangle_nodes: np.ndarray) -> np.ndar
     # Compute the elementary rigidity matrix elements: A(M^q) A_l grad w_i \cdot A_l grad w_j
     for i in range(3):
         for j in range(3):
-            for q in range(len(quadrature_points)):
-                K_l[i,j] += np.dot(a_applied[i, q], lst_grad[j, q])
+            for q, omega_q in enumerate(quadrature_weights):
+            # for q in range(len(quadrature_points)):
+                K_l[i,j] += omega_q * np.dot(a_applied[i, q], lst_grad[j, q])
     
     # # Normalize the rigidity matrix
     K_l /= D_l

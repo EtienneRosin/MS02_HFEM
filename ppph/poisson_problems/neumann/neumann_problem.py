@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from mesh_manager import CustomTwoDimensionMesh, create_rectangle_mesh
-from ppph.utils.quadratures.gauss_lobatto_4_points import quadrature_weights, quadrature_points
+# from ppph.utils.quadratures.gauss_lobatto_4_points import quadrature_weights, quadrature_points
+from ppph.utils.quadratures.gauss_legendre_6_points import quadrature_weights, quadrature_points
 from ppph.utils import ReferenceElementBarycentricCoordinates, DiffusionTensor, TwoDimensionFunction
-from ppph.utils.graphics import display_field_on_mesh
+from ppph.utils.graphics import display_field_on_mesh, display_3d
 
 bc = ReferenceElementBarycentricCoordinates()
 
@@ -40,6 +41,8 @@ class NeumannProblem:
         Approximate solution.
     exact_solution: TwoDimensionFunction, default None
         Exact solution function.
+    U_exact: np.ndarray
+        Exact solution on the domain
     relative_L2_error: float
         relative :math:`L^2(\Omega)` error (defined if the exact solution is provided)
     relative_H1_error: float
@@ -77,6 +80,7 @@ class NeumannProblem:
         self.U: np.ndarray = None
         
         self.exact_function: TwoDimensionFunction = None if exact_solution is None else TwoDimensionFunction(expr = exact_solution)
+        self.U_exact = None
         self.relative_L2_error: float = 0.0
         self.relative_H1_error: float = 0.0
     
@@ -119,10 +123,11 @@ class NeumannProblem:
         D_l = np.abs(bc.D_l(*triangle_nodes))
         A_l = bc.A_l(*triangle_nodes)
         K_l = np.zeros((3,3))
+        
         for i in range(3):
             for j in range(3):
                 for omega_q, S_q in zip(quadrature_weights, quadrature_points):
-                    K_l[i,j] += omega_q * np.dot(self.diffusion_tensor(S_q) @ A_l @ bc.grad_w_tilde(i+1, S_q), A_l @ bc.grad_w_tilde(j+1, S_q)) 
+                    K_l[i,j] += omega_q * np.dot(self.diffusion_tensor(bc.F_l(S_q, *triangle_nodes)) @ (A_l @ bc.grad_w_tilde(i+1, S_q)), A_l @ bc.grad_w_tilde(j+1, S_q)) 
         # # Normalize the rigidity matrix
         K_l /= D_l
         return K_l
@@ -191,22 +196,46 @@ class NeumannProblem:
         U = sp.sparse.linalg.spsolve(self.M + self.K, L)
         self.U = U
         if not (self.exact_function is None):
-            U_exact = self.exact_function(self.mesh.node_coords)
-            self.relative_L2_error = np.sqrt(np.dot(self.M @ (U_exact - U), U_exact - U))/ np.sqrt(np.dot(self.M @ U_exact, U_exact))
+            self.U_exact = self.exact_function(self.mesh.node_coords)
+            self.relative_L2_error = self.compute_L2_error(self.U_exact)
             print(f"L^2 relative error : {self.relative_L2_error}")
-            self.relative_H1_error = np.sqrt(np.dot(self.K @ (U_exact - U), U_exact - U))/ np.sqrt(np.dot(self.K @ U_exact, U_exact))
+            self.relative_H1_error = self.compute_H1_error(self.U_exact)
             print(f"H^1 relative error : {self.relative_H1_error}")
         return(U)
+    
+    def compute_L2_error(self, U_exact: np.ndarray) -> float:
+        if self.U is None:
+            self.solve()
+        U = self.U
+        return np.sqrt(np.dot(self.M @ (U_exact - U), U_exact - U))/np.sqrt(np.dot(self.M @ U_exact, U_exact))
+    
+    def compute_H1_error(self, U_exact: np.ndarray) -> float:
+        if self.U is None:
+            self.solve()
+        U = self.U
+        return np.sqrt(np.dot(self.K @ (U_exact - U), U_exact - U))/np.sqrt(np.dot(self.K @ U_exact, U_exact))
     
     def display(self, save_name: str = None):
         if self.U is None:
             self.solve()
         display_field_on_mesh(mesh=self.mesh, field=self.U, label='$u_h$', save_name=save_name)
     
+    def display_exact_solution(self, save_name: str = None):
+        if not (self.exact_function is None):
+            self.U_exact = self.exact_function(self.mesh.node_coords)
+        display_field_on_mesh(mesh=self.mesh, field=self.U_exact, label='$u$', save_name=save_name)
+    
+    def display_error(self, save_name: str = None):
+        if self.U is None:
+            self.solve()
+        display_field_on_mesh(mesh=self.mesh, field=self.U_exact - self.U, label='$u - u_h$', save_name=save_name)
+    
+    def display_3d(self, save_name: str = None):
+        display_3d(mesh=self.mesh, field=self.U, label='$u_h$', save_name=save_name)
 if __name__ == '__main__':
     # Mesh ----------------------------------------------------------
     mesh_fname: str = "mesh_manager/geometries/rectangle.msh"
-    h = 0.05
+    h = 0.025
     create_rectangle_mesh(h = h, L_x = 2, L_y = 1, save_name = mesh_fname)
     
     mesh = CustomTwoDimensionMesh(mesh_fname, reordering= True)
@@ -220,10 +249,19 @@ if __name__ == '__main__':
     def f(x, y):
         return (1 + 5 * np.pi ** 2) * u(x, y)
     
+    
+    
     # Problem itself ------------------------------------------------
-    neumann_pb = NeumannProblem(mesh=mesh, diffusion_tensor=diffusion_tensor, rhs=f, exact_solution=u)
+    neumann_pb = NeumannProblem(
+        mesh = mesh, 
+        diffusion_tensor = diffusion_tensor, 
+        rhs = f, 
+        exact_solution = u
+        )
     # neumann_pb._construct_A()
+    # neumann_pb.display_exact_solution()
     neumann_pb.solve()
-    # neumann_pb.display()
+    neumann_pb.display_error()
+    neumann_pb.display_3d()
     # triangle = mesh.tri_nodes[0]
     # neumann_pb._construct_elementary_rigidity_matrix(triangle=triangle)

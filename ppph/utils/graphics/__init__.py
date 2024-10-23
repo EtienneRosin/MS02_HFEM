@@ -1,1 +1,1 @@
-from .display_field_on_mesh import display_field_on_mesh
+from .display_field_on_mesh import display_field_on_mesh, display_3d

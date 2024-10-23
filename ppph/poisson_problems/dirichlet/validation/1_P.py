@@ -56,9 +56,9 @@ if __name__ == "__main__":
     fig = plt.figure()
     ax = fig.add_subplot(projection = "3d")
     
-    ax.scatter(*mesh.node_coords.T, u(mesh.node_coords), s = 1, c = "blue", alpha=1)
-    ax.scatter(*interior_nodes.T, field, s = 6, c = "red", alpha = 0.75)
-    ax.scatter(*mesh.node_coords.T, P.T @ field, s = 6, c = "yellow", alpha = 0.75)
+    # ax.scatter(*mesh.node_coords.T, u(mesh.node_coords), s = 1, c = "blue", alpha=1)
+    # ax.scatter(*interior_nodes.T, field, s = 6, c = "red", alpha = 0.75)
+    ax.scatter(*mesh.node_coords.T, P.T @ field, s = 6, c = "green", alpha = 0.75)
     
     
     

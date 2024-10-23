@@ -291,15 +291,70 @@ class CustomTwoDimensionMesh(meshio.Mesh):
             plt.show()
 
 
-    def get_corner_and_boundary_pairs(self, boundary_labels: str|list[str] = '$\\partial\\Omega$', tolerance: float = 1e-10) -> tuple[np.ndarray]:
-        """
-        Get the indices of corner nodes and pairs of boundary nodes with same x and y values.
+    # def get_corner_and_boundary_pairs(self, boundary_labels: str|list[str] = '$\\partial\\Omega$', tolerance: float = 1e-10) -> tuple[np.ndarray]:
+    #     """
+    #     Get the indices of corner nodes and pairs of boundary nodes with same x and y values.
         
+    #     Parameters
+    #     ----------
+    #     boundary_labels : str or list of str, default '$\\partial\\Omega$'
+    #         List of labels indicating the boundaries.
+    #     tolerance: float, default 1e-10
+    #         Tolerance for the equality test.
+
+    #     Returns
+    #     -------
+    #     corner_indices : np.ndarray
+    #         Indices of the corner nodes.
+    #     pairs_same_x : np.ndarray
+    #         Pairs of indices of boundary nodes with the same x value.
+    #     pairs_same_y : np.ndarray
+    #         Pairs of indices of boundary nodes with the same y value.
+    #     """
+    #     if isinstance(boundary_labels, str):
+    #         boundary_labels = [boundary_labels]
+    #     boundary_indices = np.hstack([np.where(self.node_refs == self.labels[label])[0] for label in boundary_labels])
+    #     border_nodes = self.node_coords[boundary_indices]
+
+    #     inner_indices= np.setdiff1d(np.arange(self.node_coords.shape[0]), boundary_indices)
+    #     # inner_indices = np.where(self.node_refs != boundary_indices)[0]
+    #     # print(inner_indices)
+    #     x_min = border_nodes[:, 0].min()
+    #     x_max = border_nodes[:, 0].max()
+    #     y_min = border_nodes[:, 1].min()
+    #     y_max = border_nodes[:, 1].max()
+
+    #     left_indices = np.where(self.node_coords[:, 0] == x_min)[0]
+    #     right_indices = np.where(self.node_coords[:, 0] == x_max)[0]
+    #     bottom_indices = np.where(self.node_coords[:, 1] == y_min)[0]
+    #     top_indices = np.where(self.node_coords[:, 1] == y_max)[0]
+
+    #     bottom_left = np.where(np.logical_and(self.node_coords[:, 0] == x_min, self.node_coords[:, 1] == y_min))[0]
+    #     bottom_right = np.where(np.logical_and(self.node_coords[:, 0] == x_max, self.node_coords[:, 1] == y_min))[0]
+    #     top_left = np.where(np.logical_and(self.node_coords[:, 0] == x_min, self.node_coords[:, 1] == y_max))[0]
+    #     top_right = np.where(np.logical_and(self.node_coords[:, 0] == x_max, self.node_coords[:, 1] == y_max))[0]
+
+    #     corner_indices = np.concatenate((bottom_left, bottom_right, top_left, top_right))
+
+    #     non_corner_indices = np.setdiff1d(boundary_indices, corner_indices)
+    #     non_corner_left_indices = np.setdiff1d(left_indices, corner_indices)
+    #     non_corner_right_indices = np.setdiff1d(right_indices, corner_indices)
+    #     non_corner_bottom_indices = np.setdiff1d(bottom_indices, corner_indices)
+    #     non_corner_top_indices = np.setdiff1d(top_indices, corner_indices)
+
+    #     pairs_same_x = [(i, j) for i in non_corner_bottom_indices for j in non_corner_top_indices if np.abs(self.node_coords[i, 0] - self.node_coords[j, 0]) <= tolerance]
+    #     pairs_same_y = [(i, j) for i in non_corner_left_indices for j in non_corner_right_indices if np.abs(self.node_coords[i, 1] - self.node_coords[j, 1]) <= tolerance]
+
+    #     return corner_indices, np.array(pairs_same_x), np.array(pairs_same_y)
+    def get_corner_and_boundary_pairs(self, boundary_labels: str|list[str] = '$\\partial\\Omega$', tolerance: float = 1e-10) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Get the indices of corner nodes, pairs of boundary nodes with same x and y values, and internal nodes.
+
         Parameters
         ----------
         boundary_labels : str or list of str, default '$\\partial\\Omega$'
             List of labels indicating the boundaries.
-        tolerance: float, default 1e-10
+        tolerance : float, default 1e-10
             Tolerance for the equality test.
 
         Returns
@@ -310,11 +365,18 @@ class CustomTwoDimensionMesh(meshio.Mesh):
             Pairs of indices of boundary nodes with the same x value.
         pairs_same_y : np.ndarray
             Pairs of indices of boundary nodes with the same y value.
+        inner_indices : np.ndarray
+            Indices of the internal nodes.
         """
         if isinstance(boundary_labels, str):
             boundary_labels = [boundary_labels]
+
+        # Collect boundary indices
         boundary_indices = np.hstack([np.where(self.node_refs == self.labels[label])[0] for label in boundary_labels])
         border_nodes = self.node_coords[boundary_indices]
+
+        # Determine internal node indices
+        inner_indices = np.setdiff1d(np.arange(self.node_coords.shape[0]), boundary_indices)
 
         x_min = border_nodes[:, 0].min()
         x_max = border_nodes[:, 0].max()
@@ -340,14 +402,15 @@ class CustomTwoDimensionMesh(meshio.Mesh):
         non_corner_top_indices = np.setdiff1d(top_indices, corner_indices)
 
         pairs_same_x = [(i, j) for i in non_corner_bottom_indices for j in non_corner_top_indices if np.abs(self.node_coords[i, 0] - self.node_coords[j, 0]) <= tolerance]
-        pairs_same_y = [(i, j) for i in non_corner_left_indices for j in non_corner_right_indices if np.abs(self.node_coords[i, 1] - self.node_coords[j, 1]) <= tolerance]
+        pairs_same_y = [(i, j) for i in non_corner_right_indices for j in non_corner_left_indices if np.abs(self.node_coords[i, 1] - self.node_coords[j, 1]) <= tolerance]
+        
+        return corner_indices, np.array(pairs_same_x), np.array(pairs_same_y), inner_indices
 
-        return corner_indices, np.array(pairs_same_x), np.array(pairs_same_y)
 
     def display_corner_and_boundary_pairs(self, boundary_labels: str|list[str] = '$\\partial\\Omega$', save_name: str = None) -> None:
         if isinstance(boundary_labels, str):
             boundary_labels = [boundary_labels]
-        corner_indices, pairs_same_x, pairs_same_y = self.get_corner_and_boundary_pairs(boundary_labels)
+        corner_indices, pairs_same_x, pairs_same_y, inner_indices = self.get_corner_and_boundary_pairs(boundary_labels)
         boundary_indices = np.hstack([np.where(self.node_refs == self.labels[label])[0] for label in boundary_labels])
         with plt.style.context('science' if save_name else 'default'):
             fig, ax = plt.subplots()
@@ -360,6 +423,8 @@ class CustomTwoDimensionMesh(meshio.Mesh):
 
             # ax.legend(loc='upper right')
             ax.scatter(*self.node_coords[boundary_indices].T, label="border nodes", zorder = 2, s = 8)
+            ax.scatter(*self.node_coords[inner_indices].T, label="inner nodes", s = 8)
+            
             ax.scatter(*self.node_coords[corner_indices].T, label="corner nodes", zorder = 2, s = 8)
             ax.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
                 mode="expand", borderaxespad=0, ncol=2)

@@ -25,6 +25,7 @@ class DirichletProblem(NeumannProblem):
         """
         on_border_ref = mesh.labels['$\\partial\\Omega$']
         interior_indices = np.where(mesh.node_refs != on_border_ref)[0]
+        # print(interior_indices)
         N_0 = len(interior_indices)
         N = mesh.num_nodes
 
@@ -51,10 +52,10 @@ class DirichletProblem(NeumannProblem):
         U = self.P.T @ U_0
         self.U = U
         if not (self.exact_function is None):
-            U_exact = self.exact_function(self.mesh.node_coords)
-            self.relative_L2_error = np.sqrt(np.dot(self.M @ (U_exact - U), U_exact - U))/ np.sqrt(np.dot(self.M @ U_exact, U_exact))
+            self.U_exact = self.exact_function(self.mesh.node_coords)
+            self.relative_L2_error = self.compute_L2_error(self.U_exact)
             print(f"L^2 relative error : {self.relative_L2_error}")
-            self.relative_H1_error = np.sqrt(np.dot(self.K @ (U_exact - U), U_exact - U))/ np.sqrt(np.dot(self.K @ U_exact, U_exact))
+            self.relative_H1_error = self.compute_H1_error(self.U_exact)
             print(f"H^1 relative error : {self.relative_H1_error}")
         return(U)
         
@@ -62,24 +63,38 @@ class DirichletProblem(NeumannProblem):
 if __name__ == "__main__":
     # Mesh ----------------------------------------------------------
     mesh_fname: str = "mesh_manager/geometries/rectangle.msh"
-    h = 0.05
-    # create_rectangle_mesh(h = h, L_x = 2, L_y = 1, save_name = mesh_fname)
+    h = 0.025
+    create_rectangle_mesh(h = h, L_x = 1, L_y = 1, save_name = mesh_fname)
     
     mesh = CustomTwoDimensionMesh(mesh_fname, reordering= True)
     # Problem parameters --------------------------------------------
-    def diffusion_tensor(x, y):
-        return np.eye(2)
+    # def diffusion_tensor(x, y):
+    #     return np.eye(2)
     
-    def u(x, y):
-        return np.sin(np.pi * x) * np.sin(2 * np.pi * y)
+    # def u(x, y):
+    #     return np.sin(2 * np.pi * x) * np.sin(2 * np.pi * y)
 
-    def f(x, y):
-        return (1 + 5 * np.pi ** 2) * u(x, y)
+    # def f(x, y):
+    #     return (1 + 5 * np.pi ** 2) * u(x, y)
+    
+    def v(x, y):
+        return np.cos(2 * np.pi * x) * np.cos(2 * np.pi * y) + 2
+
+    def diffusion_tensor(x, y):
+        return v(x, y) * np.eye(2)
+
+    def u(x, y):
+        return np.sin(2 * np.pi * x) * np.sin(2 * np.pi * y)
+
+    def f(x, y): 
+        return (1 + 16*(np.pi**2)*(v(x,y) - 1))*u(x,y)
     
     # Problem itself ------------------------------------------------
     dirichlet_pb = DirichletProblem(mesh=mesh, diffusion_tensor=diffusion_tensor, rhs=f, exact_solution=u)
     # neumann_pb._construct_A()
     dirichlet_pb.solve()
     dirichlet_pb.display()
+    dirichlet_pb.display_3d()
+    # dirichlet_pb.display_error()
     # triangle = mesh.tri_nodes[0]
     # neumann_pb._construct_elementary_rigidity_matrix(triangle=triangle)
