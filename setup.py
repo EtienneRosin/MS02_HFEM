@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="ppph",
+    name="hfem",
     version="0.1",
     description="A library to deals with the Periodic Poisson equation (from a ENSTA work).",
     long_description=open('README.md').read(),
