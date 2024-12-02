@@ -1,3 +1,5 @@
 meshes/
 *.msh
 docs/
+report/
+simulation_data/

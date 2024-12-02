@@ -1,0 +1,3 @@
+# from .convergence_handling import ConvergenceData, measure_convergence, save_convergence_data, read_from_file, plot_convergence, PenalizedConvergenceData, plot_penalized_convergence, measure_penalized_convergence
+
+from .convergence import measure_poisson_convergence, measure_penalized_convergence, StandardConvergenceData, PenalizedCellConvergenceData, MultiEtaPenalizedCellConvergenceData, save_data, read_data, plot_corrector_convergence, plot_standard_convergence, plot_tensor_convergence

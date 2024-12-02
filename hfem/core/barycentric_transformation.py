@@ -140,8 +140,10 @@ class BarycentricTransformation:
             raise ValueError("Triangle has zero area")
             
         # Compute barycentric coordinates
-        lambda1 = ((y23*(x - x3) + x32*(y - y3)) / D)
-        lambda2 = ((y31*(x - x3) + x13*(y - y3)) / D)
+        # lambda1 = ((y23*(x - x3) + x32*(y - y3)) / D)
+        # lambda2 = ((y31*(x - x3) + x13*(y - y3)) / D)
+        lambda1 = ((y23*(x - x3) + x23*(y - y3)) / D)
+        lambda2 = ((y31*(x - x3) + x31*(y - y3)) / D)
         lambda3 = 1.0 - lambda1 - lambda2
         
         return np.array([lambda1, lambda2, lambda3])
@@ -166,6 +168,23 @@ class BarycentricTransformation:
         NDArray[np.float64]
             Reference coordinates [xi, eta]
         """
-        jacobian = BarycentricTransformations.compute_jacobian(triangle_nodes)
+        jacobian = BarycentricTransformation.compute_jacobian(triangle_nodes)
         point_relative = point - triangle_nodes[0]
         return np.linalg.solve(jacobian, point_relative)
+    
+if __name__ == '__main__':
+    
+    direction = 1
+    nodes = np.array([[0, 0], [1, 0], [0, 1]])
+    jacobian = BarycentricTransformation.compute_jacobian(nodes)
+        # jacobian = BarycentricTransformation.compute_jacobian(nodes)
+        # inv_jac = np.linalg.inv(jacobian).T
+    det_j = np.abs(np.linalg.det(jacobian))
+    print(f"{det_j = }")
+    vec = np.zeros(3)
+    for i in range(3):
+        vec[i] = BarycentricTransformation.compute_reference_gradient(i)[direction]
+        # print(BarycentricTransformation.compute_reference_gradient(i)[direction])
+    # print(vec.T)
+    # print(vec[:, np.newaxis])
+    print((det_j/6)*np.repeat(vec[:, np.newaxis], 3, axis=1))

@@ -137,19 +137,22 @@ class CustomFigure(Figure):
             has_3d_axes = any(hasattr(ax, 'get_proj') for ax in self.axes)
             
             if has_3d_axes:
+                print(f"{len(self.axes) = }")
                 if len(self.axes) > 1: # may contains a colorbar
                     self.subplots_adjust(
                         left = 0,
                         bottom = 0.05,
                         right=0.85,
                         top = 0.925,
-                        wspace = 0.1,
-                        hspace = 0.1)
+                        # wspace = 0.01,
+                        # hspace = 0.01
+                        )
                 else:
                     self.tight_layout(*args, **kwargs)
             else:
                 # Standard tight layout for 2D
                 self.tight_layout(*args, **kwargs)
+                pass
         
         except Exception as e:
             print(f"Layout adjustment warning: {e}")
@@ -179,14 +182,27 @@ if __name__ == '__main__':
         # Create figure using CustomFigure
         fig = plt.figure(FigureClass=CustomFigure)
         # ax = fig.add_subplot()
-        ax = fig.add_subplot(projection = '3d')
-        # cs = ax.contourf(X, Y, z, locator=ticker.LogLocator(), cmap=cm.PuBu_r)
-        cs = ax.plot_surface(X, Y, z, cmap=cm.PuBu_r)
-        cbar = fig.custom_colorbar(cs, ax=ax, pad = "2.5%", size = "2%", label = r"$u_h - u$")
+        # ax = fig.add_subplot(projection = '3d')
+        
+        axes = fig.subplots(nrows=1, ncols=2, 
+                            sharex=True,
+                            sharey=True,
+                            subplot_kw = dict(
+                                # projection = '3d', 
+                                aspect = 'equal')
+                            )
+        # axes[-1].tick_params(axis="y", labelleft=False)
+        # cs = axes[-1].plot_surface(X, Y, z, cmap=cm.PuBu_r)
+        cs = axes[-1].contourf(X, Y, z, locator=ticker.LogLocator(), cmap=cm.PuBu_r)
+        axes[0].contourf(X, Y, z**2, locator=ticker.LogLocator(), cmap=cm.PuBu_r)
+        cbar = fig.custom_colorbar(cs, ax=axes[-1], pad = "2.5%", size = "2%", label = r"$u_h - u$")
+        # # cs = ax.contourf(X, Y, z, locator=ticker.LogLocator(), cmap=cm.PuBu_r)
+        # cs = ax.plot_surface(X, Y, z, cmap=cm.PuBu_r)
+        # cbar = fig.custom_colorbar(cs, ax=ax, pad = "2.5%", size = "2%", label = r"$u_h - u$")
         
         
-        ax.set_title("Custom Figure with Precise Colorbar")
-        # plt.tight_layout()
+        # ax.set_title("Custom Figure with Precise Colorbar")
+        # # plt.tight_layout()
         fig.adjust_layout()
-        fig.savefig(fname="cizbyc.pdf")
+        # fig.savefig(fname="cizbyc.pdf")
         plt.show()

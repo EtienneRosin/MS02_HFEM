@@ -1,0 +1,3 @@
+
+class BaseProblem:
+    pass
